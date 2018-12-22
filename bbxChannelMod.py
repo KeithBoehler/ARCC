@@ -23,7 +23,6 @@ bbxFileHandel  = bbx.LofasmFile(bbxfile)
 bbxFileHandel.read_data()
 data = bbxFileHandel.data[:, :].astype(np.float32)
 bbxFileHeader = bbxFileHandel.header
-print bbxFileHeader
 
 # select frequancy to zero 
 userin = float(pars_dict['freq'])
