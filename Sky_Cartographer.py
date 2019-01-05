@@ -8,18 +8,18 @@ Last mod: 3 Jan 2019
 import argparse 
 import struct 
 from lofasm import parse_data as pdat
-import os
+from lofasm.bbx import bbx
 
-def filename2dates(path, packedStruct):
+def filename2dates(bbxHeader, packedStruct):
     # Strip the path to its date parts 
     blankStruckt = struct.unpack('iiiiii', packedStruct)
-    path = os.path.basename(path)
-    year = path[0:4]
-    month = path[4:6]
-    day = path[6:8]
-    hour = path[9:11]
-    minute = path[11:13]
-    second = path[13:15]
+    dateString = bbxHeader['start_time']
+    year = dateString[0:4]
+    month = dateString[5:7]
+    day = dateString[8:10]
+    hour = dateString[11:13]
+    minute = dateString[14:16]
+    second = dateString[17:-1]
     print "the year is " + year
     print "the month is " + month
     print "the day is " + day
@@ -31,11 +31,13 @@ def filename2dates(path, packedStruct):
 parser = argparse.ArgumentParser()
 parser.add_argument("-p", "--path", help="Path to input bbx file")
 bbxFile = vars(parser.parse_args()) # This is a one element dict.
+bbx_handel = bbx.LofasmFile(bbxFile['path'])
+bbxHeader = bbx_handel.header
 
 # Making empty struct.
 date411 = struct.pack('iiiiii', 0, 0, 0, 0, 0, 0) # YMD_Hms
 
 # Populate Struct
-filename2dates(bbxFile['path'], date411)
+filename2dates(bbxHeader, date411)
 
 
