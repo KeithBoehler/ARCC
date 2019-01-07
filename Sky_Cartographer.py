@@ -10,22 +10,21 @@ import struct
 from lofasm import parse_data as pdat
 from lofasm.bbx import bbx
 
+def getStationID(bbxHeader):
+    return bbxHeader['station']
+
 def filename2dates(bbxHeader, packedStruct):
     # Strip the path to its date parts 
-    blankStruckt = struct.unpack('iiiiii', packedStruct)
+    blankStruckt = struct.unpack('iiiiif', packedStruct)
     dateString = bbxHeader['start_time']
-    year = dateString[0:4]
-    month = dateString[5:7]
-    day = dateString[8:10]
-    hour = dateString[11:13]
-    minute = dateString[14:16]
-    second = dateString[17:-1]
-    print "the year is " + year
-    print "the month is " + month
-    print "the day is " + day
-    print "the hour is " + hour
-    print "the minute is " + minute
-    print "the secound is " + second
+    year = int(dateString[0:4]) # Year
+    month = int(dateString[5:7])# Month
+    day = int(dateString[8:10])# Day
+    hour = int(dateString[11:13])# Hour
+    minute = int(dateString[14:16])# Minute
+    second = float(dateString[17:-1])# Seconds
+    blankStruct = struct.pack("iiiiii", year, month, day, hour, minute, second)
+    return blankStruct # now filled 
 
 # Getting and opening the file we want.
 parser = argparse.ArgumentParser()
@@ -38,6 +37,6 @@ bbxHeader = bbx_handel.header
 date411 = struct.pack('iiiiii', 0, 0, 0, 0, 0, 0) # YMD_Hms
 
 # Populate Struct
-filename2dates(bbxHeader, date411)
-
+date411 = filename2dates(bbxHeader, date411)
+print struct.unpack("iiiiif", date411)
 
