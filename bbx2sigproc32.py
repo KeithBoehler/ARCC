@@ -30,12 +30,14 @@ highBin = pdat.freq2bin(highFreq)
 lofasmFile = vars(parser.parse_args())
 inPath = lofasmFile['path'] # bring out the path from dict to str
 print lofasmFile
+
+print os.path.exists(inPath)
 lf = bbx.LofasmFile(inPath)
-lf.read_data()
+
 # Get the file header dictionary 
 lofasmHeader = lf.header
 print lofasmHeader
-data = lf.data[:,lowBin:highBin].astype(np.float32) # uncomment 9/27/2018
+#data = lf.data[:,lowBin:highBin].astype(np.float32) # uncomment 9/27/2018
 #data = lf.data[lowBin:highBin, :].astype(np.float32) # uncomment 8/6/2018 # recomment at above uncomment
 #data = lf.data.astype(np.float32)
 #new filterbank file name
@@ -51,7 +53,7 @@ print "The value of dim 1 len is: {}".format(nsamples)
 rbw = float(lofasmHeader['dim2_span'])*1e-6 / float(lofasmHeader['metadata']['dim2_len']) #resolution bandwith. Changed freqbins to lofasmHeader['metadata']['dim2_len']
 print "rbw: {}".format(rbw)
 fch1 = highFreq - (rbw/2)
-print "The shape of the data is: {}".format(data.shape)
+#print "The shape of the data is: {}".format(data.shape)
 #populate new header
 newHeader = {
     'telescope_id': 6, # we are using the number one for now to say we are using AO. 6 for GBT
@@ -77,7 +79,19 @@ for k in newHeader.keys():
 #write header to filterbank file
 fbfile = filMake(filName, newHeader, nbits=32, verbose=True)
 
-for i in range(nsamples):
+# Stream in Data and Write to disk
+rowsToRead = 1
+data_aux = np.zeros((rowsToRead,highBin - lowBin ))
+data = np.zeros((1, highBin - lowBin))
+print "The shape of data is: {}".format(data.shape)
+print "number of samples or time bins is " + str(nsamples)
+# Getting rid of the otherwise zeros column 
+lf.read_data(rowsToRead)
+data[:,:] = lf.data[:, lowBin:highBin].astype(np.float32)
+for i in range(nsamples - 1): # subbing one is the fist is done outside the loop
+    lf.read_data(rowsToRead)
+    data_aux[:,:] = lf.data[:,lowBin:highBin].astype(np.float32)
+    data = np.concatenate((data, data_aux))
     spectra = data[i,:][::-1]#spectra = data[:,i][::-1]
     #print "The spectra shape is: {}".format(spectra.shape)
     #spectra = np.reshape(spectra, (1, newHeader['metadata']['dim2_len'])) 
