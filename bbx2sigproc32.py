@@ -1,5 +1,5 @@
 # Get needed header information for sigproc file format from lofasm files.
-
+import time
 from lofasm.bbx import bbx
 from lofasm import parse_data as pdat
 # These where in Scott's sigproc.py 
@@ -16,6 +16,7 @@ from psr_constants import ARCSECTORAD
 import sigproc
 from filterbank import create_filterbank_file as filMake
 import argparse 
+import gc
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-p", "--path", help="Path to input bbx file.")
@@ -37,9 +38,6 @@ lf = bbx.LofasmFile(inPath)
 # Get the file header dictionary 
 lofasmHeader = lf.header
 print lofasmHeader
-#data = lf.data[:,lowBin:highBin].astype(np.float32) # uncomment 9/27/2018
-#data = lf.data[lowBin:highBin, :].astype(np.float32) # uncomment 8/6/2018 # recomment at above uncomment
-#data = lf.data.astype(np.float32)
 #new filterbank file name
 filName = 'newlofasm32.fil'
 
@@ -80,23 +78,25 @@ for k in newHeader.keys():
 fbfile = filMake(filName, newHeader, nbits=32, verbose=True)
 
 # Stream in Data and Write to disk
-rowsToRead = 1
-data_aux = np.zeros((rowsToRead,highBin - lowBin ))
-data = np.zeros((1, highBin - lowBin))
-print "The shape of data is: {}".format(data.shape)
+rowsToRead = nsamples
+spectra = np.zeros((rowsToRead,highBin - lowBin ))
+#data = np.zeros((1, highBin - lowBin))
 print "number of samples or time bins is " + str(nsamples)
+print "The shape of SPECTRA is: {}".format(spectra.shape)
 # Getting rid of the otherwise zeros column 
-lf.read_data(rowsToRead)
-data[:,:] = lf.data[:, lowBin:highBin].astype(np.float32)
-for i in range(nsamples - 1): # subbing one is the fist is done outside the loop
-    lf.read_data(rowsToRead)
-    data_aux[:,:] = lf.data[:,lowBin:highBin].astype(np.float32)
-    data = np.concatenate((data, data_aux))
-    spectra = data[i,:][::-1]#spectra = data[:,i][::-1]
-    #print "The spectra shape is: {}".format(spectra.shape)
-    #spectra = np.reshape(spectra, (1, newHeader['metadata']['dim2_len'])) 
-    spectra = np.reshape(spectra, (1, newHeader['nchans']))
+
+for i in range(rowsToRead):
+    start_time = time.time()
+    lf.read_data(1)
+    #print "The shape of data is: {}".format(lf.data.shape)
+    spectra = lf.data[:,lowBin:highBin].astype(np.float32)
+    spectra = spectra[::-1]
+    #spectra = np.reshape(spectra, (1, newHeader['nchans']))
+    #print "The shape of SPECTRA is: {}".format(spectra.shape)
     fbfile.append_spectra(spectra)
+    print "processed row {}/{} in {}s...{}%".format(i+1, rowsToRead, time.time()-start_time,100*((i+1.0)/rowsToRead))
+#    fbfile.append_spectra(lf.data[:][lowBin:highBin][::-1].astype(np.float32))
+
 
 fbfile.close()
 
