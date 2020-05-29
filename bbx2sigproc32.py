@@ -1,8 +1,10 @@
+#!/usr/bin/env python
+
 # Get needed header information for sigproc file format from lofasm files.
 import time
 from lofasm.bbx import bbx
 from lofasm import parse_data as pdat
-# These where in Scott's sigproc.py 
+# These where in Scott's sigproc.py
 import os
 import struct
 import sys
@@ -15,11 +17,12 @@ import warnings
 from psr_constants import ARCSECTORAD
 import sigproc
 from filterbank import create_filterbank_file as filMake
-import argparse 
+import argparse
 import gc
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-p", "--path", help="Path to input bbx file.")
+parser.add_argument("-w", "--whitten", help="Use Robust Whitenning filter during convert.")
 
 lowFreq = 25.0
 highFreq = 75.0
@@ -27,7 +30,16 @@ highFreq = 75.0
 lowBin = pdat.freq2bin(lowFreq)
 highBin = pdat.freq2bin(highFreq)
 
-# Open file to translate 
+def robustWhitenning(data, mu=10.e3):
+    Mu = mu
+    data = np.array(data)
+    Nr, Nc = data.shape
+    result = np.zeros_like(data)
+    for i in xrange(Nr):
+        result[i,:] = data[i,:] / np.sqrt(abs(data[i,:])**2 + mu**2)
+    return result
+
+# Open file to translate
 lofasmFile = vars(parser.parse_args())
 inPath = lofasmFile['path'] # bring out the path from dict to str
 print lofasmFile
@@ -35,7 +47,7 @@ print lofasmFile
 print os.path.exists(inPath)
 lf = bbx.LofasmFile(inPath)
 
-# Get the file header dictionary 
+# Get the file header dictionary
 lofasmHeader = lf.header
 print lofasmHeader
 #new filterbank file name
@@ -43,7 +55,7 @@ filName = 'newlofasm32.fil'
 
 tstart = float(lofasmHeader['dim1_start'])/86400.0 + 51545.0 # first we convert to days then to the start of J2000
 #tsamp = float(lofasmHeader['dim1_span']) / float(lofasmHeader['timebins'])
-tsamp = float(lofasmHeader['dim1_span']) / float(lofasmHeader['metadata']['dim1_len']) 
+tsamp = float(lofasmHeader['dim1_span']) / float(lofasmHeader['metadata']['dim1_len'])
 # The change here is that timebins seems to have been renamed.
 # There is a dictionary inside a dictionary, so we need those two [][]
 nsamples = int(lofasmHeader['metadata']['dim1_len']) # swaped out 'timebins'
@@ -83,7 +95,7 @@ spectra = np.zeros((rowsToRead,highBin - lowBin ))
 #data = np.zeros((1, highBin - lowBin))
 print "number of samples or time bins is " + str(nsamples)
 print "The shape of SPECTRA is: {}".format(spectra.shape)
-# Getting rid of the otherwise zeros column 
+# Getting rid of the otherwise zeros column
 
 for i in range(rowsToRead):
     start_time = time.time()
@@ -94,10 +106,8 @@ for i in range(rowsToRead):
     #spectra = np.reshape(spectra, (1, newHeader['nchans']))
     #print "The shape of SPECTRA is: {}".format(spectra.shape)
     fbfile.append_spectra(spectra)
-    print "processed row {}/{} in {}s...{}%".format(i+1, rowsToRead, time.time()-start_time,100*((i+1.0)/rowsToRead))
+    #print "processed row {}/{} in {}s...{}%".format(i+1, rowsToRead, time.time()-start_time,100*((i+1.0)/rowsToRead))
 #    fbfile.append_spectra(lf.data[:][lowBin:highBin][::-1].astype(np.float32))
 
 
 fbfile.close()
-
-
