@@ -21,8 +21,9 @@ import argparse
 import gc
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-p", "--path", help="Path to input bbx file.")
-parser.add_argument("-w", "--whitten", help="Use Robust Whitenning filter during convert.")
+parser.add_argument("-p", "--path", help="Path to input bbx file.", type=str)
+parser.add_argument("-w", "--whiten", help="Use Robust Whitenning filter during convert. \
+                        Should be a boolean. (True or False)", type=str2bool, default=False)
 
 lowFreq = 25.0
 highFreq = 75.0
@@ -40,8 +41,8 @@ def robustWhitenning(data, mu=10.e3):
     return result
 
 # Open file to translate
-lofasmFile = vars(parser.parse_args())
-inPath = lofasmFile['path'] # bring out the path from dict to str
+parseDict = vars(parser.parse_args())
+inPath = parseDict['path'] # bring out the path from dict to str
 print lofasmFile
 
 print os.path.exists(inPath)
@@ -97,6 +98,7 @@ print "number of samples or time bins is " + str(nsamples)
 print "The shape of SPECTRA is: {}".format(spectra.shape)
 # Getting rid of the otherwise zeros column
 
+
 for i in range(rowsToRead):
     start_time = time.time()
     lf.read_data(1)
@@ -105,6 +107,8 @@ for i in range(rowsToRead):
     spectra = spectra[::-1]
     #spectra = np.reshape(spectra, (1, newHeader['nchans']))
     #print "The shape of SPECTRA is: {}".format(spectra.shape)
+    if(parseDict['whiten']):
+        spectra = robustWhitenning(spectra)
     fbfile.append_spectra(spectra)
     #print "processed row {}/{} in {}s...{}%".format(i+1, rowsToRead, time.time()-start_time,100*((i+1.0)/rowsToRead))
 #    fbfile.append_spectra(lf.data[:][lowBin:highBin][::-1].astype(np.float32))
