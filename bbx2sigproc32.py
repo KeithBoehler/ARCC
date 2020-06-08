@@ -7,10 +7,6 @@ from lofasm import parse_data as pdat
 # These where in Scott's sigproc.py
 import os
 import struct
-import sys
-newpath = ['/home/arcc/Documents/sandbox/presto/lib/python'] #temporary while repo is updated
-newpath.extend(sys.path)
-sys.path = newpath
 import math
 import numpy as np
 import warnings
