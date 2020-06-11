@@ -16,6 +16,10 @@ from filterbank import create_filterbank_file as filMake
 import argparse
 import gc
 # My functions
+'''
+https://stackoverflow.com/questions/15008758/parsing-boolean-values-with-argparse/36031646
+
+'''
 def str2bool(v):
     if isinstance(v, bool):
        return v
