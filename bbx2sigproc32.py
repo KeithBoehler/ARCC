@@ -15,6 +15,28 @@ import sigproc
 from filterbank import create_filterbank_file as filMake
 import argparse
 import gc
+# My functions
+def str2bool(v):
+    if isinstance(v, bool):
+       return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
+
+def robustWhitenning(data, mu=10.e3):
+    Mu = mu
+    data = np.array(data)
+    Nr, Nc = data.shape
+    result = np.zeros_like(data)
+    for i in xrange(Nr):
+        result[i,:] = data[i,:] / np.sqrt(abs(data[i,:])**2 + mu**2)
+    return result
+
+# Script
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-p", "--path", help="Path to input bbx file.", type=str)
@@ -27,19 +49,11 @@ highFreq = 75.0
 lowBin = pdat.freq2bin(lowFreq)
 highBin = pdat.freq2bin(highFreq)
 
-def robustWhitenning(data, mu=10.e3):
-    Mu = mu
-    data = np.array(data)
-    Nr, Nc = data.shape
-    result = np.zeros_like(data)
-    for i in xrange(Nr):
-        result[i,:] = data[i,:] / np.sqrt(abs(data[i,:])**2 + mu**2)
-    return result
 
 # Open file to translate
 parseDict = vars(parser.parse_args())
 inPath = parseDict['path'] # bring out the path from dict to str
-print lofasmFile
+print parseDict
 
 print os.path.exists(inPath)
 lf = bbx.LofasmFile(inPath)
@@ -49,6 +63,7 @@ lofasmHeader = lf.header
 print lofasmHeader
 #new filterbank file name
 filName = 'newlofasm32.fil'
+
 
 tstart = float(lofasmHeader['dim1_start'])/86400.0 + 51545.0 # first we convert to days then to the start of J2000
 #tsamp = float(lofasmHeader['dim1_span']) / float(lofasmHeader['timebins'])
