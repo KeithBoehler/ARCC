@@ -46,18 +46,20 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-p", "--path", help="Path to input bbx file.", type=str)
 parser.add_argument("-w", "--whiten", help="Use Robust Whitenning filter during convert. \
                         Should be a boolean. (True or False)", type=str2bool, default=False)
-
-lowFreq = 25.0
-highFreq = 75.0
-
-lowBin = pdat.freq2bin(lowFreq)
-highBin = pdat.freq2bin(highFreq)
-
+parser.add_argument("-lf", "--low-freq", help="Set the lower frequency (in MHz) bounry to be written. LoFASM range is 0-100MHz. Default 20MHz.", type=int, default=25)
+parser.add_argument("-hf", "--high-freq", help="Set the upper frequency (in MHz) bounry to be written. Range is 0-100MHz. Default 75MHz.", type=int, default=75)
 
 # Open file to translate
 parseDict = vars(parser.parse_args())
 inPath = parseDict['path'] # bring out the path from dict to str
 print parseDict
+
+lowFreq = parseDict['low_freq']
+highFreq = parseDict['high_freq']
+assert lowFreq < highFreq, "Lower frequency cannot be larger than the higher. "
+lowBin = pdat.freq2bin(lowFreq)
+highBin = pdat.freq2bin(highFreq)
+
 
 print os.path.exists(inPath)
 lf = bbx.LofasmFile(inPath)
