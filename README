@@ -1,11 +1,7 @@
-
-Sky Cartographer 
-
-	Collection of scripts that tie PRESTO's accel output notes on possible 
-pusars with the ATNF catalog to see if those sources could even be in
- LoFAM's bbx file.
-
-Other 
-
-
 By: Keith E. Boehler Jr.
+#
+A set of tools that help me process LoFASM data.
+
+## bbx2sigproc32
+A converter that takes bbx files and converts them into fil. This is a data format that is readable by PRESTO. Overall it changes the name of some header values, reorders the data, and casts from 64bit to 32bit numbers.
+
