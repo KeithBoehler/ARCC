@@ -39,6 +39,24 @@ def boundarySet(p_dict):
     
     return lower_bin, upper_bin
 
+def prepHeader(bbx_hdr, u_bin, l_bin):
+    sig_header = {
+            'telescope_id': 6, # 6 = GBT; 1 = AO
+            'machine_id': 0,
+            'data_type': 1,
+            'rawdatafile': in_path,
+            'tstart': t_start,
+            'tstamp': t_stamp,
+            'nbits': 32,
+            'fch1': f_ch1,
+            'foff': -1 * rbw, # Decending Freq Channels
+            'nchans': u_bin - l_bin,
+            'nifs': 1,
+            'source_name': 'LoFASM'
+            'Telescope' : str(bbx_hdr['station'])
+            'src_raj' : 'NA',
+            'src_dej' : 'NA',
+            }
 # Options
 parser = argparse.ArgumentParser()
 parser.add_argument("-p", "--path", help="Path to input bbx file.", type=bbxFile)
